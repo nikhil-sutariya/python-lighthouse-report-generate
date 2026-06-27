@@ -19,9 +19,22 @@ def get_reports(url):
 
     for url in urls:
         file_name = url.split("//")[1].replace('/', '-')
-        if "http" in url:
+        if "http" in url and not "https" in url:
             url = url.replace('http', 'https')
-        command = f'lighthouse {url} --output json --output-path "/home/itaims/Desktop/projects/seo-tool/reports/{file_name}.json" --preset desktop --chrome-flags="--headless" --quiet --view'
+        output_path = os.path.abspath(f"reports/{file_name}.json")
+        
+        print("=" * 20)
+        print(f"Generating report for: {url}")
+        print("=" * 20)
+
+        command = (
+            f'lighthouse "{url}" '
+            f'--output json '
+            f'--output-path "{output_path}" '
+            '--preset=desktop '
+            '--chrome-flags="--headless" '
+            '--quiet'
+        )
         os.system(command)
         f = open(f'reports/{file_name}.json', encoding="utf-8")
         json_data = json.load(f)
@@ -34,7 +47,7 @@ def get_reports(url):
             report_dict['best_practices'] = json_data['categories']['best-practices']['score'] * 100
             report_dict['seo'] = json_data['categories']['seo']['score'] * 100
             report_dict['url'] = url
-            # report_dict['pwa'] = json_data['categories']['pwa']['score'] * 100
+            report_dict['pwa'] = json_data['categories']['pwa']['score'] * 100
 
         except Exception as e:
             report_dict['performance'] = 0.0
@@ -42,7 +55,7 @@ def get_reports(url):
             report_dict['best_practices'] = 0.0
             report_dict['seo'] = 0.0
             report_dict['url'] = url
-            # report_dict['pwa'] = 0.0
+            report_dict['pwa'] = 0.0
             report_dict['error'] = str(e)
 
         web_vitals.append(report_dict)
